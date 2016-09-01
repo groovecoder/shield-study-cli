@@ -1,0 +1,24 @@
+{
+  "name": "shield-study-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "shield": "./index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "commander": "^2.9.0",
+    "firefox-profile": "^0.4.0",
+    "jpm": "^1.1.4",
+    "jsonfile": "^2.3.1",
+    "merge": "^1.2.0",
+    "shelljs-nodecli": "^0.1.1",
+    "tempfile": "^1.1.1"
+  }
+}
