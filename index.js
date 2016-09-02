@@ -42,6 +42,11 @@ function makeProfile(dir) {
     console.log("profile made at:", dir)
 }
 
+function initStudy(dir, name) {
+  // body...
+
+}
+
 var standardPrefs = {
  "toolkit.telemetry.server": "http://localhost:5000",
  "toolkit.telemetry.cachedClientID": "00000000-0000-0000-0000-aed0866e9fc0",
@@ -54,10 +59,6 @@ var program = require('commander');
 
 program
   .version('0.0.1')
-  .command('init')
-  .action(function () {
-    console.log('init');
-  })
 
 program
   .command('run <addonDir> [variation]')
@@ -137,9 +138,23 @@ program
   })
 
 program
+  .command('init <name>')
+  .option("-f --force", "remove dir if exists")
+  .action(function (name, options) {
+    // yes, this is not as robust as shell!  Sorry!
+    if (options.force) {
+      nodeCLI.exec('rm', '-rf', name);
+    }
+    if (nodeCLI.exec('scripts/initStudy.bash', name).code !== 0) {
+      exit(1);
+    }
+    initStudy(name);
+  })
+
+program
   .command('lint <dir>')
   .action(function (dir) {
-    console.log('lint %s', dir);
+    console.log('NOT YET IMPLEMENTED: lint %s', dir);
   });
 ;
 

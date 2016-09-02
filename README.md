@@ -7,20 +7,19 @@ npm install -g shield-studies-cii
 ```
 
 
-Usage:
+## Usage:
 
 ```
-shield -h
-
+$ shield -h
 
   Usage: shield [options] [command]
 
 
   Commands:
 
-    init
     run [options] <addonDir> [variation]
     profile [options] <dir>
+    init [options] <name>
     lint <dir>
 
   Options:
@@ -29,7 +28,7 @@ shield -h
     -V, --version  output the version number
 ```
 
-## Examples:
+## Subcommand examples:
 
 ### run
 
@@ -90,7 +89,20 @@ These are useful base profiles for debugging runs, qa, `jpm`, etc.
 
 ### init
 
-TBD - make a new project
+```
+$ shield init -h
+
+  Usage: init [options] <name>
+
+  Options:
+
+    -h, --help  output usage information
+    -f --force  remove dir if exists
+```
+
+Clone out the template, overrwriting if needful.
+
+```$ shield init my-feature-study-addon --force```
 
 ### lint
 
@@ -99,5 +111,7 @@ TBD - lint an existing project study
 
 ## Sources
 
-inspired by:  https://developer.atlassian.com/blog/2015/11/scripting-with-node/
+inspired by:
+
+- https://developer.atlassian.com/blog/2015/11/scripting-with-node/
 
