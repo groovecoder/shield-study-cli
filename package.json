@@ -1,6 +1,6 @@
 {
   "name": "shield-study-cli",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "CLI for Shield Study Mozilla Addons",
   "main": "index.js",
   "scripts": {
