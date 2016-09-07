@@ -78,7 +78,6 @@ Overwrite if needful.
 $ shield profile --force some/path
 ```
 
-
 Add some prefs
 ```
 $ shield profile --prefs some.prefs  --prefs some.prefs

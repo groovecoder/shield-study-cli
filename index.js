@@ -64,14 +64,17 @@ program
   .command('run <addonDir> [variation]')
   .option("--prefs <json>", "additional prefs to set")
   .option("--firstrun <epoch>", "set the firstrun to test expiry")
+  .option("--debug", "add the shield.debug pref")
+
   .action(function (addonDir, variation, options) {
-    console.log("run %s variation:%s options:%s", addonDir, variation, options.variation);
     // if prefs, read it.
     // extend that with whatever
     // write it, then:
     // call jpm run --prefs
 
-    var addon = require(addonDir + "/package.json");
+    // TODO make this work always for relative and rooted paths
+    var addonPkg = process.cwd() + '/' + addonDir + "/package.json";
+    var addon = require(addonPkg);
     var id = addon.id || addon.name;
     var prefsBr = "extensions." + id;
 
@@ -107,6 +110,11 @@ program
       console.log("mimic previous run: %s", options.firstrun)
     } else {
       console.log("running with firstrun as: NOW")
+    }
+
+    if (options.debug) {
+      ourPrefs['shield.debug'] = true;
+      console.log("setting `shield.debug`");
     }
 
     var newPrefs = merge(standardPrefs, ourPrefs, userPrefs);
@@ -145,7 +153,7 @@ program
     if (options.force) {
       nodeCLI.exec('rm', '-rf', name);
     }
-    if (nodeCLI.exec('scripts/initStudy.bash', name).code !== 0) {
+    if (nodeCLI.exec(__dirname + '/scripts/initStudy.bash', name).code !== 0) {
       exit(1);
     }
     initStudy(name);
