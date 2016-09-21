@@ -8,6 +8,29 @@ var jsonfile = require("jsonfile");
 var path = require("path");
 var tempfile = require('tempfile');
 
+var util = require('util');
+
+var clim = require("clim");
+clim.logWrite = function(level, prefixes, msg) {
+  var pfx = '';
+  if (prefixes.length > 0) pfx = prefixes.join(" ");
+
+  level = (f[level.toLowerCase()] || function (p) {return p})(level);
+  line = util.format("%s [%s] %s", pfx, level, msg)
+  process.stderr.write(line + "\n");
+};
+
+var console = clim(chalk.grey("shield"));
+
+var f = {
+  error:chalk.red,
+  link: chalk.underline.blue,
+  info: chalk.blue,
+  log: chalk.blue,
+  warn: chalk.red,
+  bold: chalk.bold
+}
+
 var nodeCLI = require("shelljs-nodecli");
 
 var FirefoxProfile = require("firefox-profile");
@@ -39,7 +62,7 @@ function makeProfile(dir) {
       profile.setPreference(pref, prefs[pref]);
     });
     profile.updatePreferences();
-    console.log("profile made at:", dir)
+    console.info("profile made at:", f.link(dir))
 }
 
 function initStudy(dir, name) {
@@ -48,8 +71,7 @@ function initStudy(dir, name) {
 }
 
 var standardPrefs = {
- "toolkit.telemetry.server": "http://localhost:5000",
- "toolkit.telemetry.cachedClientID": "00000000-0000-0000-0000-aed0866e9fc0",
+ "toolkit.telemetry.enabled": "false",
  //"extensions.sdk.console.logLevel": "debug",
  "browser.selfsuppport.enabled": false,
  "general.warnOnAboutConfig": false
@@ -59,6 +81,7 @@ var program = require('commander');
 
 program
   .version(require('./package.json').version)
+  .description("cli for Shield Studies actions")
 
 program
   .command('run <addonDir> [variation]')
@@ -101,39 +124,41 @@ program
       userPrefs[k] = v;
     })
 
-    console.log("user prefs %j", userPrefs);
+    console.info("--prefs: \n%s", JSON.stringify(userPrefs,null, 2));
     // set special addon prefs
     ourPrefs = {};
     if (variation) {
       ourPrefs[prefsBr + ".shield.variation"] = variation;
-      console.log("setting variation to: %s", variation);
+      console.info("setting variation to: %s", f.bold(variation));
     } else {
-      console.log("choosing variation at random");
+      console.info("choosing variation %s", f.bold("at random"));
     }
 
     if (options.firstrun) {
       ourPrefs[prefsBr + ".shield.firstrun"] = options.firstrun;
-      console.log("mimic previous run: %s", options.firstrun)
+      console.info("firstrun: mimic previous run: %s", f.bold(options.firstrun))
     } else {
-      console.log("running with firstrun as: NOW")
+      console.info("firstrun: simulate firstrun as %s", f.bold("NOW"))
     }
 
     if (options.debug) {
       ourPrefs['shield.debug'] = true;
-      console.log("setting `shield.debug`");
+      console.info("setting `shield.debug`");
     }
 
     var newPrefs = merge(standardPrefs, ourPrefs, userPrefs);
-    console.log(JSON.stringify(newPrefs, null, 2));
 
     var file = tempfile(".json")
-    console.log("combined prefs at:", file);
     jsonfile.writeFileSync(file, newPrefs, {spaces: 2})
+    console.info("combined prefs: %s\n%s",
+        f.link(file),
+        JSON.stringify(newPrefs,null,2));
 
-    //console.log("jpm", "run", "code:", addonDir, "variation:", variation, "--prefs", options.prefs, passedOn);
+    //console.info("jpm", "run", "code:", addonDir, "variation:", variation, "--prefs", options.prefs, passedOn);
     var callArgs = ["jpm", "run", '--addon-dir', addonDir, "--prefs", file].concat(passedOn);
-    console.log(callArgs);
+    console.info("jpm args:\n%s", util.inspect(callArgs) );
     nodeCLI.exec.apply(nodeCLI, callArgs);
+    exit(0);
   })
 
 program
@@ -144,11 +169,22 @@ program
     if (options.force) {
       nodeCLI.exec('rm', '-rf', dir);
     }
-    if (nodeCLI.exec('mkdir', '-p', dir + '/extensions').code !== 0) {
-      echo('Error: %s already exists or cant be written. "profile" action fail.  try --force', dir);
+    var fs = require('fs');
+
+    function fail () {
+      console.error("%s %s %s", f.error("profile action failed"), f.link(dir), "already exists or cant be written. try `--force`");
       exit(1);
     }
+
+    if (!fs.existsSync(dir)) {
+      var attempt = nodeCLI.exec('mkdir', '-p', dir + '/extensions');
+      if (attempt.code !==0) fail();
+    } else {
+      fail();
+    }
+
     makeProfile(dir);
+    exit(0);
   })
 
 program
@@ -163,14 +199,27 @@ program
       exit(1);
     }
     initStudy(name);
+    exit(0);
   })
 
 program
   .command('lint <dir>')
   .action(function (dir) {
-    console.log('NOT YET IMPLEMENTED: lint %s', dir);
+    console.info('NOT YET IMPLEMENTED: lint %s', dir);
+    exit(0);
   });
 ;
 
+program
+  .command('*')
+  .action(function(env){
+    console.error(f.error( env + " command does not yet exist."));
+    console.info("request it at: ", f.link(require('./package.json').bugs.url));
+    program.help()
+  });
 
 program.parse(preprocess(process.argv));
+if (!program.args.length) {
+  console.error(f.error("no command given"));
+  program.help();
+}
