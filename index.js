@@ -73,10 +73,16 @@ program
     // call jpm run --prefs
 
     // TODO make this work always for relative and rooted paths
-    var addonPkg = process.cwd() + '/' + addonDir + "/package.json";
+    var addonPkg;
+    if (! path.isAbsolute(addonDir)) {
+      addonPkg = process.cwd() + '/' + addonDir + "/package.json";
+    } else {
+      addonPkg = addonDir + "/package.json";
+    }
+
     var addon = require(addonPkg);
     var id = addon.id || addon.name;
-    var prefsBr = "extensions." + id;
+    var prefsBr = "extensions.@" + id;
 
     // prefs from the user
     var _userPrefs = {};
